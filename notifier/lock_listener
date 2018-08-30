@@ -1,0 +1,21 @@
+#! /bin/bash
+
+python3 notifier.py &
+PID=$!
+echo "PID=$PID"
+
+dbus-monitor --session "type='signal',interface='org.gnome.ScreenSaver'" |
+  while read x; do
+    case $x in
+      *"boolean false"*)  #screen unlocked
+        echo "unlocked, so starting"
+        python3 notifier.py &
+        PID=$!
+        echo "PID=$PID"
+        ;;
+      *"boolean true"*)   #screen locked
+        echo "locked, so killing"
+        kill $PID
+        ;;
+    esac
+  done
